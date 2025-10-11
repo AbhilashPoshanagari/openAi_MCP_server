@@ -17,6 +17,7 @@ from starlette.middleware.cors import CORSMiddleware
 from mcp.types import ResourceTemplateReference, Completion
 import config
 import click
+import time
 
 def is_colab():
     """Detect if code runs inside Google Colab."""
@@ -29,7 +30,7 @@ def is_colab():
 def setup_ngrok(port: int):
     """If running in Colab, start ngrok and return public URL."""
     try:
-        from pyngrok import ngrok
+        from pyngrok import ngrok, conf
         from google.colab import userdata
     except ImportError:
         print("pyngrok not installed or not in Colab; skipping ngrok.")
@@ -37,8 +38,15 @@ def setup_ngrok(port: int):
 
     try:
         token = userdata.get("ngrok_token")
-        if token:
-            ngrok.set_auth_token(token)
+        if not token:
+            print("No ngrok token found in Colab userdata. Please set it using:")
+            print("    from google.colab import userdata")
+            print("    userdata.set('ngrok_token', 'YOUR_TOKEN')")
+            return None
+        conf.get_default().auth_token = token
+        ngrok.set_auth_token(token)
+        time.sleep(2)
+
         public_url = ngrok.connect(port)
         print(f"ngrok tunnel active: {public_url}")
         return public_url
