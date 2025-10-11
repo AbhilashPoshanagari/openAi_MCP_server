@@ -32,7 +32,7 @@ def setup_ngrok(port: int):
         from pyngrok import ngrok
         from google.colab import userdata
     except ImportError:
-        print("⚠️ pyngrok not installed or not in Colab; skipping ngrok.")
+        print("pyngrok not installed or not in Colab; skipping ngrok.")
         return None
 
     try:
@@ -40,10 +40,10 @@ def setup_ngrok(port: int):
         if token:
             ngrok.set_auth_token(token)
         public_url = ngrok.connect(port)
-        print(f"✅ ngrok tunnel active: {public_url}")
+        print(f"ngrok tunnel active: {public_url}")
         return public_url
     except Exception as e:
-        print(f"⚠️ Failed to start ngrok: {e}")
+        print(f"Failed to start ngrok: {e}")
         return None
 
 server_instructions = """
@@ -207,8 +207,7 @@ app.add_middleware(
 @click.option("--host", default="0.0.0.0", help="Enter host name")
 @click.option("--port", default=8100, help="Enter port number")
 @click.option("--ngrok", is_flag=True, help="Force ngrok even outside Colab")
-
-def startServer(host, port):
+def startServer(host, port, ngrok):
     public_url = None
     if is_colab() or ngrok:
         public_url = setup_ngrok(port)
