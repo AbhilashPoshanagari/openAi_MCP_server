@@ -31,21 +31,22 @@ def setup_ngrok(port: int):
     """If running in Colab, start ngrok and return public URL."""
     try:
         from pyngrok import ngrok, conf
-        from google.colab import userdata
+        # from google.colab import userdata
     except ImportError:
         print("pyngrok not installed or not in Colab; skipping ngrok.")
         return None
 
     try:
-        token = userdata.get("ngrok_token")
-        if not token:
-            print("No ngrok token found in Colab userdata. Please set it using:")
-            print("    from google.colab import userdata")
-            print("    userdata.set('ngrok_token', 'YOUR_TOKEN')")
-            return None
-        conf.get_default().auth_token = token
-        ngrok.set_auth_token(token)
-        time.sleep(2)
+        # token = userdata.get("ngrok_token")
+        token = config.NGROK_AUTHTOKEN
+        # if not token:
+        #     print("No ngrok token found in Colab userdata. Please set it using:")
+        #     print("    from google.colab import userdata")
+        #     print("    userdata.set('ngrok_token', 'YOUR_TOKEN')")
+        #     return None
+        # conf.get_default().auth_token = token
+        # ngrok.set_auth_token(token)
+        # time.sleep(2)
 
         public_url = ngrok.connect(port)
         print(f"ngrok tunnel active: {public_url}")
@@ -217,7 +218,7 @@ app.add_middleware(
 @click.option("--ngrok", is_flag=True, help="Force ngrok even outside Colab")
 def startServer(host, port, ngrok):
     public_url = None
-    if is_colab() or ngrok:
+    if ngrok:
         public_url = setup_ngrok(port)
 
     if public_url:

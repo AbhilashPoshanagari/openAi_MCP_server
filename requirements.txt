@@ -252,3 +252,5 @@ uvicorn==0.35.0
 xxhash==3.5.0
     # via langgraph
 openai==1.93.0
+
+pyngrok==7.4.0
