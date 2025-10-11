@@ -36,7 +36,7 @@ def setup_ngrok(port: int):
         return None
 
     try:
-        token = userdata.get("ngrok_token", None)
+        token = userdata.get("ngrok_token")
         if token:
             ngrok.set_auth_token(token)
         public_url = ngrok.connect(port)
