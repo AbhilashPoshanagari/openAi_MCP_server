@@ -1,0 +1,7 @@
+.git/credentials
+.git/.my-credentials
+.env
+.vscode/*
+
+.gitconfig.project
+/__pycache__/*
