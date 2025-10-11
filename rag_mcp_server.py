@@ -18,6 +18,34 @@ from mcp.types import ResourceTemplateReference, Completion
 import config
 import click
 
+def is_colab():
+    """Detect if code runs inside Google Colab."""
+    try:
+        import google.colab
+        return True
+    except ImportError:
+        return False
+
+def setup_ngrok(port: int):
+    """If running in Colab, start ngrok and return public URL."""
+    try:
+        from pyngrok import ngrok
+        from google.colab import userdata
+    except ImportError:
+        print("⚠️ pyngrok not installed or not in Colab; skipping ngrok.")
+        return None
+
+    try:
+        token = userdata.get("ngrok_token", None)
+        if token:
+            ngrok.set_auth_token(token)
+        public_url = ngrok.connect(port)
+        print(f"✅ ngrok tunnel active: {public_url}")
+        return public_url
+    except Exception as e:
+        print(f"⚠️ Failed to start ngrok: {e}")
+        return None
+
 server_instructions = """
 This MCP server provides search and document retrieval capabilities 
 for deep research. Use the search tool to find relevant documents 
@@ -178,7 +206,17 @@ app.add_middleware(
 @click.command()
 @click.option("--host", default="0.0.0.0", help="Enter host name")
 @click.option("--port", default=8100, help="Enter port number")
+@click.option("--ngrok", is_flag=True, help="Force ngrok even outside Colab")
+
 def startServer(host, port):
+    public_url = None
+    if is_colab() or ngrok:
+        public_url = setup_ngrok(port)
+
+    if public_url:
+        print(f"🌍 Public URL: {public_url}")
+    else:
+        print(f"🚀 Running locally at: http://{host}:{port}")
     uvicorn.run(app, host=host, port=port)
 
 if __name__ == "__main__":
