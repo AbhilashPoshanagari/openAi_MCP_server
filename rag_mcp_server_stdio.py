@@ -1,8 +1,8 @@
 
 from mcp.server.fastmcp import FastMCP, Context
-from resources import Resources
-from prompt import Prompts
-from tools import Tools
+from resources.resources import Resources
+from prompts.prompt import Prompts
+from tools.tools import Tools
 
 server_instructions = """
 This MCP server provides search and document retrieval capabilities 

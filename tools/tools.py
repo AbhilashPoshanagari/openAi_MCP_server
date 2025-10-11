@@ -11,32 +11,25 @@ import ssl, certifi
 from pydantic import BaseModel, Field
 from mcp.server.fastmcp import Context
 import certifi
-from postgres_conn import PostgreSQL
-from sentence_transformers import SentenceTransformer
+from postgres.postgres_conn import PostgreSQL
+# from sentence_transformers import SentenceTransformer
 from langchain.utils.openai_functions import convert_pydantic_to_openai_function
 from mcp.server.elicitation import (
     AcceptedElicitation, 
     DeclinedElicitation, 
     CancelledElicitation,
-)# Set up SSL context to use certifi's CA bundle
+)
+from openai import OpenAI
 
 import mcp.types as types
 import config
+
 ssl_context = ssl.create_default_context(cafile=certifi.where())
 # Define the directory to store papers
 PAPER_DIR = "papers"
 # Create the directory if it doesn't exist
 os.makedirs(PAPER_DIR, exist_ok=True)
 
-model = SentenceTransformer("/home/abhilash/NLP_basics/models/all-mpnet-base-v2")
-# db = PostgreSQL(
-#         host=config.POSTGRE_SERVER,
-#         port=config.POSTGRE_PORT,
-
-#         user=config.POSTGRE_USERNAME,
-#         password=config.POSTGRE_PASSWORD,
-#         database=config.POSTGRE_DB
-#     )
 class fieldOn_docs(BaseModel):
     question: str = Field(description="user questions on FieldOn documentation")
 
@@ -99,12 +92,20 @@ class DatabaseQuery(BaseModel):
         """Dynamically create a subclass with the default query value"""
         class DynamicDatabaseQuery(cls):
             query: str = Field(default=default_query, description="Postgresql database query")
-            print("query failed : ")
         return DynamicDatabaseQuery
 
 class Tools():
     def __init__(self):
+        self.openai_client = OpenAI(api_key=config.OPENAI_API_KEY)
         pass
+
+    async def get_embedding(self, text: str) -> list:
+        """Get embeddings using OpenAI's embedding model"""
+        response = self.openai_client.embeddings.create(
+            model=config.OPENAI_EMBEDDING_MODEL,  # e.g., "text-embedding-3-small"
+            input=text
+        )
+        return response.data[0].embedding
 
     def openAi_funcs(self):
         # Convert all Pydantic tools to OpenAI function format
@@ -190,14 +191,39 @@ class Tools():
         1) do not include postgreSQL internal system tables.
         2) include only user defined tables.
         """
-        try:
-            database = await self.databaseRequest(ctx=ctx)
-            res = await self.executeQuery(defaultQuery=query, database=database, ctx=ctx)
-            return res
-        except Exception as e: 
-            return f"Something went wrong"
+        result = await ctx.elicit(
+            message=f"we need credentials to get access!",
+            schema=DatabaseDetails,
+        )
+        match result:
+            case AcceptedElicitation(data=data):
+                if data.username and data.password:
+                    database = PostgreSQL(
+                                host=data.host,
+                                port=data.port,
+                                user=data.username,
+                                password=data.password,
+                                database=data.database
+                            )
+                    try: 
+                        res = await self.executeQuery(defaultQuery=query, database=database, ctx=ctx)
+                        # rows = database.fetch_all(query=query)
+                        # res = rows
+
+                    except Exception as e:
+                        res = "Error something went wrong"
+                    return res
+                else:
+                    return "Try again"
+            case DeclinedElicitation():
+                return "Declined"
+            case CancelledElicitation():
+                return "Cancelled"
+
+        # Otherwise, fallback if the date is available
+        return f"Something went wrong"
     
-    async def executeQuery(self, defaultQuery: str, database, ctx: Context):
+    async def executeQuery(self, defaultQuery: str, database, ctx: Context) -> str:
         print(f"Query : {defaultQuery}")
 
         # Create a dynamic schema with the default query
@@ -226,36 +252,6 @@ class Tools():
                 return "Cancelled"
         # Otherwise, fallback if the date is available
         return f"Something went wrong"
-
-    async def fieldOn_response(self, question: str, ctx: Context):
-        db = await self.databaseRequest(ctx=ctx)
-        embedding = model.encode(question).tolist()
-        query = """
-            SELECT sentence,
-        1 - (embedding <=> %s::vector) AS similarity
-            FROM microsoft_phi_2
-            ORDER BY embedding <=> %s::vector
-            LIMIT 10;
-        """
-        results = db.execute(query, embedding, embedding)
-        # Assuming your data is stored in `results` as a list of dict-like objects:
-        context = " ".join([row["sentence"].strip().rstrip('.') + '.' for row in results])
-        return context
-    
-    async def ag_and_p_response(self, question: str, ctx: Context):
-        db = await self.databaseRequest(ctx=ctx)
-        embedding = model.encode(question).tolist()
-        query = """
-            SELECT sentence,
-        1 - (embedding <=> %s::vector) AS similarity
-            FROM vec_user_manual__ag_p
-            ORDER BY embedding <=> %s::vector
-            LIMIT 10;
-        """
-        results = db.execute(query, embedding, embedding)
-        # Assuming your data is stored in `results` as a list of dict-like objects:
-        context = " ".join([row["sentence"].strip().rstrip('.') + '.' for row in results])
-        return context
     
     def jokes(self, topic, ctx: Context):
 

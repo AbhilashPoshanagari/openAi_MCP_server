@@ -2,7 +2,6 @@
 #    uv pip compile pyproject.toml
 annotated-types==0.7.0
     # via pydantic
-anthropic==0.57.1
     # via mcp-server (pyproject.toml)
 anyio==4.9.0
     # via
@@ -11,8 +10,6 @@ anyio==4.9.0
     #   mcp
     #   sse-starlette
     #   starlette
-arxiv==2.2.0
-    # via mcp-server (pyproject.toml)
 async-timeout==4.0.3
     # via langchain
 attrs==25.3.0
@@ -53,8 +50,7 @@ h11==0.16.0
     # via
     #   httpcore
     #   uvicorn
-hf-xet==1.1.5
-    # via huggingface-hub
+
 httpcore==1.0.9
     # via httpx
 httpx==0.28.1
@@ -65,7 +61,6 @@ httpx==0.28.1
     #   mcp
 httpx-sse==0.4.1
     # via mcp
-huggingface-hub==0.33.4
     # via
     #   sentence-transformers
     #   tokenizers
@@ -77,10 +72,6 @@ idna==3.10
     #   requests
 jinja2==3.1.6
     # via torch
-jiter==0.10.0
-    # via anthropic
-joblib==1.5.1
-    # via scikit-learn
 jsonpatch==1.33
     # via langchain-core
 jsonpointer==3.0.0
@@ -129,42 +120,6 @@ numpy==2.2.6
     #   scikit-learn
     #   scipy
     #   transformers
-nvidia-cublas-cu12==12.6.4.1
-    # via
-    #   nvidia-cudnn-cu12
-    #   nvidia-cusolver-cu12
-    #   torch
-nvidia-cuda-cupti-cu12==12.6.80
-    # via torch
-nvidia-cuda-nvrtc-cu12==12.6.77
-    # via torch
-nvidia-cuda-runtime-cu12==12.6.77
-    # via torch
-nvidia-cudnn-cu12==9.5.1.17
-    # via torch
-nvidia-cufft-cu12==11.3.0.4
-    # via torch
-nvidia-cufile-cu12==1.11.1.6
-    # via torch
-nvidia-curand-cu12==10.3.7.77
-    # via torch
-nvidia-cusolver-cu12==11.7.1.2
-    # via torch
-nvidia-cusparse-cu12==12.5.4.2
-    # via
-    #   nvidia-cusolver-cu12
-    #   torch
-nvidia-cusparselt-cu12==0.6.3
-    # via torch
-nvidia-nccl-cu12==2.26.2
-    # via torch
-nvidia-nvjitlink-cu12==12.6.85
-    # via
-    #   nvidia-cufft-cu12
-    #   nvidia-cusolver-cu12
-    #   nvidia-cusparse-cu12
-    #   torch
-nvidia-nvtx-cu12==12.6.77
     # via torch
 orjson==3.10.18
     # via
@@ -229,16 +184,7 @@ rpds-py==0.26.0
     # via
     #   jsonschema
     #   referencing
-safetensors==0.5.3
-    # via transformers
-scikit-learn==1.7.0
-    # via sentence-transformers
-scipy==1.15.3
-    # via
-    #   scikit-learn
-    #   sentence-transformers
-sentence-transformers==5.0.0
-    # via mcp-server (pyproject.toml)
+
 setuptools==80.9.0
     # via triton
 sgmllib3k==1.0.0
@@ -274,8 +220,6 @@ tqdm==4.67.1
     #   huggingface-hub
     #   sentence-transformers
     #   transformers
-transformers==4.53.2
-    # via sentence-transformers
 triton==3.3.1
     # via torch
 typing-extensions==4.14.1
@@ -307,5 +251,4 @@ uvicorn==0.35.0
     #   mcp
 xxhash==3.5.0
     # via langgraph
-zstandard==0.23.0
-    # via langsmith
+openai==1.93.0

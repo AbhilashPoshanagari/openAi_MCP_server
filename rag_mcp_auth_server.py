@@ -23,9 +23,9 @@ from mcp.types import SamplingMessage, TextContent
 from starlette.applications import Starlette
 from starlette.routing import Mount
 from mcp.server.fastmcp import FastMCP, Context
-from resources import get_available_folders, get_topic_papers
-from prompt import generate_search_prompt
-from tools import fieldOn_response, ag_and_p_response, book_table
+from resources.resources import get_available_folders, get_topic_papers
+from prompts.prompt import generate_search_prompt
+from tools.tools import fieldOn_response, ag_and_p_response, book_table
 from starlette.applications import Starlette
 import uvicorn
 from starlette.middleware.cors import CORSMiddleware

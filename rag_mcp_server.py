@@ -1,6 +1,5 @@
 import sys
 import contextlib
-# import types
 import logging
 import mcp.types as types
 import anyio
@@ -8,9 +7,9 @@ from fastapi import Request, Response
 from fastapi.responses import JSONResponse
 from starlette.routing import Mount
 from mcp.server.fastmcp import FastMCP, Context
-from resources import Resources
-from prompt import Prompts
-from tools import Tools
+from resources.resources import Resources
+from prompts.prompt import Prompts
+from tools.tools import Tools
 from starlette.applications import Starlette
 from pydantic import BaseModel, Field
 import uvicorn
@@ -28,9 +27,6 @@ document content with citations.
 
 # Configure logging
 logger = logging.getLogger(__name__)
-
-# event_store = PostgresEventStore()
-# event_store = MongoEventStore()
 
 mcp = FastMCP(name=config.MCP_SERVER_NAME, host = config.MCP_HOST, debug = True,
                 port = config.MCP_PORT, json_response=False,
@@ -85,7 +81,6 @@ async def databaseAccess(query: str, ctx: Context):
 async def notificationsWithResumability(interval: int, count: int, caller: str,  ctx: Context) -> list[types.ContentBlock]:
         # Send the specified number of notifications with the given interval
         for i in range(count):
-            # Include more detailed message for resumability demonstration
             notification_msg = (
                 f"[{i + 1}/{count}] Event from '{caller}' - "
                 f"Use Last-Event-ID to resume if disconnected"
@@ -94,11 +89,6 @@ async def notificationsWithResumability(interval: int, count: int, caller: str, 
                 level="info",
                 data=notification_msg,
                 logger="notification_stream",
-                # Associates this notification with the original request
-                # Ensures notifications are sent to the correct response stream
-                # Without this, notifications will either go to:
-                # - a standalone SSE stream (if GET request is supported)
-                # - nowhere (if GET request isn't supported)
                 related_request_id=ctx.request_id,
             )
             logger.debug(f"Sent notification {i + 1}/{count} for caller: {caller}")
@@ -116,37 +106,6 @@ async def notificationsWithResumability(interval: int, count: int, caller: str, 
                 ),
             )
         ]
-
-@mcp.tool(title="Field On docs", description = """ You help users understand how to manage roles like Account Administrator, Group Moderator, and Super Admins, as well as tasks such as creating forms, filling in required fields, selecting avatars, and related operations.
-
-    Refer only to the context provided. If the context does not include the answer, respond with: 
-    "I'm not sure based on the current information."
-
-    Be concise and informative. Avoid assuming information not found in the context.
-    Args:
-        question: user questions on FieldOn documentation
-    """,  annotations={
-         "question": {"description": "user questions on FieldOn documentation"}
-         })
-async def fieldOn_docs(question: str, ctx: Context) -> str:
-    await ctx.info(f"Info: {question}")
-    return await tools.fieldOn_response(question, ctx)
-
-@mcp.tool(title="AG and P docs", description=""" You help users understand AG and P documentation, which includes AG and P field user features like geo-tagging
-    form edit, weld functionality, MDPE pipe and Arraw device connection and related operations.
-
-    Refer only to the context provided. If the context does not include the answer, respond with: 
-    "I'm not sure based on the current information."
-
-    Be concise and informative. Avoid assuming information not found in the context.
-    Args:
-        question: user questions on AG and P or AG&P documentation
-    """, annotations={
-         "question": {"description": "user questions on AG and P or AG&P documentation"}
-         })
-async def ag_and_p_docs(question: str, ctx: Context) -> str:
-    await ctx.info(f"Info: {question}")
-    return await tools.ag_and_p_response(question, ctx)
 
 @mcp.tool(title="Book a table", description="Book a table at a restaurant by providing date, time, and party size.",
           annotations={

@@ -1,7 +1,15 @@
 .git/credentials
 .git/.my-credentials
 .env
+.vscode
 .vscode/*
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
 
 .gitconfig.project
 /__pycache__/*
+/papers
+/papers/*
