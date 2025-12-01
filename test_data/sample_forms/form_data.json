@@ -1,0 +1,152 @@
+{
+    "data": {
+        "formWidgets": [
+            {
+                "_id": "66baf2e43633b712fc9367ce",
+                "id": "Id_3571667967",
+                "label": "testForm1",
+                "isRequired": true,
+                "placeholder": "",
+                "defaultValue": "",
+                "minLength": "1",
+                "maxLength": "1",
+                "type": "textBox",
+                "isUnderHeading": "",
+                "isDependentField": false,
+                "disabled": "",
+                "displayName": "",
+                "typeChange": "",
+                "dynamicDropdownTable": "",
+                "columnName": "",
+                "formId": "4a52897c0000000000000000",
+                "position": 1,
+                "__v": 0
+            },
+            {
+                "_id": "66baf2e43633b712fc9367cf",
+                "id": "Id_1113409555",
+                "label": "TestLabel2",
+                "isRequired": "",
+                "placeholder": "",
+                "defaultValue": "",
+                "minLength": "",
+                "maxLength": "",
+                "type": "textBox",
+                "isUnderHeading": "",
+                "isDependentField": false,
+                "disabled": "",
+                "displayName": "",
+                "typeChange": "",
+                "dynamicDropdownTable": "",
+                "columnName": "",
+                "formId": "4a52897c0000000000000000",
+                "position": 2,
+                "__v": 0
+            },
+            {
+                "_id": "66c461c43633b712fc9369fd",
+                "id": "Id_1220195105",
+                "label": "Status",
+                "isRequired": true,
+                "placeholder": "",
+                "defaultValue": "Level1",
+                "isReassign": false,
+                "type": "status",
+                "options": [
+                    {
+                        "displayValue": "Level1",
+                        "value": "Level1",
+                        "dependFields": null
+                    },
+                    {
+                        "displayValue": "Level2",
+                        "value": "Level2",
+                        "dependFields": null
+                    },
+                    {
+                        "displayValue": "Level3",
+                        "value": "Level3",
+                        "dependFields": null
+                    },
+                    {
+                        "displayValue": "Level4",
+                        "value": "Level4",
+                        "dependFields": null
+                    },
+                    {
+                        "displayValue": "Level6",
+                        "value": "Level6",
+                        "dependFields": null
+                    },
+                    {
+                        "displayValue": "Level7",
+                        "value": "Level7",
+                        "dependFields": null
+                    },
+                    {
+                        "displayValue": "Level8",
+                        "value": "Level8",
+                        "dependFields": null
+                    },
+                    {
+                        "displayValue": "Level9",
+                        "value": "Level9",
+                        "dependFields": null
+                    },
+                    {
+                        "displayValue": "Level10",
+                        "value": "Level10",
+                        "dependFields": null
+                    },
+                    {
+                        "displayValue": "Level5",
+                        "value": "Level5",
+                        "dependFields": null
+                    }
+                ],
+                "isUnderHeading": "",
+                "isDependentField": false,
+                "disabled": "",
+                "displayName": "",
+                "formId": "4a52897c0000000000000000",
+                "position": 3,
+                "__v": 0
+            }
+        ],
+        "isCurrentVersion": false,
+        "formInfo": {
+            "_id": "4a52897c0000000000000000",
+            "name": "testForm1",
+            "createdBy": "Ajay reddy",
+            "description": "",
+            "dependentFields": [],
+            "displayField": [
+                {
+                    "_id": "66baf2e43633b712fc9367ce",
+                    "id": "Id_3571667967",
+                    "label": "testForm1",
+                    "isRequired": true,
+                    "placeholder": "",
+                    "defaultValue": "",
+                    "minLength": "1",
+                    "maxLength": "1",
+                    "type": "textBox",
+                    "isUnderHeading": "",
+                    "isDependentField": false,
+                    "disabled": "",
+                    "displayName": "",
+                    "typeChange": "",
+                    "dynamicDropdownTable": "",
+                    "columnName": "",
+                    "formId": "4a52897c0000000000000000",
+                    "position": 1,
+                    "__v": 0
+                }
+            ],
+            "version": "2"
+        },
+        "referenceList": [],
+        "recordInformation": []
+    },
+    "status": 200
+}

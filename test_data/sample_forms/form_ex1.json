@@ -1,0 +1,108 @@
+    {
+      "type": "form",
+      "data": {
+        "title": "Employee Onboarding Form",
+        "schema": {
+          "title": "Employee Onboarding Form",
+          "description": "Form created by HR Department",
+          "type": "object",
+          "properties": {
+            "full_name": {
+              "title": "Full Name",
+              "description": "Enter your full legal name",
+              "type": "string",
+              "widgetType": "textBox",
+              "originalId": "emp_name_001",
+              "position": 1,
+              "minLength": 2,
+              "maxLength": 100
+            },
+            "email_address": {
+              "title": "Email Address",
+              "description": "Enter your company email",
+              "type": "string",
+              "widgetType": "email",
+              "originalId": "emp_email_002",
+              "position": 2,
+              "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+            },
+            "department": {
+              "title": "Department",
+              "description": "Select your department",
+              "type": "string",
+              "widgetType": "select",
+              "originalId": "emp_dept_003",
+              "position": 3,
+              "options": [
+                {"displayValue": "Engineering", "value": "eng"},
+                {"displayValue": "Sales", "value": "sales"},
+                {"displayValue": "Marketing", "value": "marketing"},
+                {"displayValue": "Human Resources", "value": "hr"}
+              ]
+            },
+            "start_date": {
+              "title": "Start Date",
+              "description": "Select your employment start date",
+              "type": "string",
+              "widgetType": "date",
+              "originalId": "emp_date_004",
+              "position": 4
+            },
+            "terms_accepted": {
+              "title": "Accept Terms & Conditions",
+              "description": "Please read and accept the terms",
+              "type": "boolean",
+              "widgetType": "checkbox",
+              "originalId": "emp_terms_005",
+              "position": 5,
+              "default": false
+            },
+            "additional_notes": {
+              "title": "Additional Notes",
+              "description": "Any special requirements or notes",
+              "type": "string",
+              "widgetType": "textArea",
+              "originalId": "emp_notes_006",
+              "position": 6,
+              "maxLength": 500
+            }
+          },
+          "required": ["full_name", "email_address", "department", "terms_accepted"]
+        },
+        "metadata": {
+          "form_id": "emp_onboard_2024_v2",
+          "form_name": "Employee Onboarding Form",
+          "createdBy": "HR System",
+          "version": "2.1",
+          "description": "Complete employee onboarding and registration process",
+          "totalFields": 6,
+          "comment": "All widget types recognized successfully."
+        },
+        "actions": {
+          "submit": {
+            "type": "tool",
+            "title": "Submit Onboarding",
+            "tool_name": "add_record",
+            "description": "Submit Employee Onboarding Form",
+            "params": {
+              "form_data": {
+                "type": "json"
+              },
+              "form_id": {
+                "type": "metadata",
+                "field": "form_id"
+              },
+              "form_name": {
+                "type": "metadata",
+                "field": "form_name"
+              }
+            }
+          },
+          "cancel": {
+            "type": "cancel",
+            "title": "Cancel",
+            "description": "Cancel onboarding process"
+          }
+        }
+      }
+    }

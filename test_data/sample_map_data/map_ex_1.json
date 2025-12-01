@@ -1,0 +1,57 @@
+{
+    "type": "map",
+    "data": {
+        "title": "Nearby Coffee Shops",
+        "features": [
+        {
+            "id": "shop_1",
+            "name": "Brew & Bean",
+            "type": "Coffee Shop",
+            "coordinates": [40.7484, -73.9857],
+            "properties": {
+            "address": "123 Main St, New York, NY",
+            "rating": 4.5,
+            "hours": "7am-9pm",
+            "phone": "(555) 123-4567",
+            "specialty": "Artisanal Pour-Over"
+            },
+            "style": {
+            "color": "#8B4513",
+            "fillColor": "#D2691E",
+            "radius": 12,
+            "fillOpacity": 0.7
+            }
+        },
+        {
+            "id": "shop_2",
+            "name": "Urban Roast",
+            "type": "Coffee Shop",
+            "coordinates": [40.7523, -73.9821],
+            "properties": {
+            "address": "456 Broadway, New York, NY",
+            "rating": 4.2,
+            "hours": "6am-10pm",
+            "phone": "(555) 987-6543",
+            "specialty": "Cold Brew"
+            },
+            "style": {
+            "color": "#654321",
+            "fillColor": "#8B4513",
+            "radius": 10,
+            "fillOpacity": 0.7
+            }
+        }
+        ],
+        "center": [40.7484, -73.9857],
+        "zoom": 14,
+        "height": "450px",
+        "wmsLayers": [
+        {
+            "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+            "layers": "osm",
+            "attribution": "© OpenStreetMap contributors"
+        }
+        ]
+    }
+
+}

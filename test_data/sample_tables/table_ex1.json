@@ -1,0 +1,96 @@
+    {
+  "type": "table",
+  "data": {
+    "table_name": "Employee Performance Dashboard",
+    "column_names": [
+      "Employee ID",
+      "Full Name",
+      "Department",
+      "Performance Score",
+      "Hire Date",
+      "Active Status"
+    ],
+    "data": [
+      [
+        "EMP001",
+        "John Smith",
+        "Engineering",
+        92.5,
+        "2023-01-15",
+        true
+      ],
+      [
+        "EMP002",
+        "Maria Garcia",
+        "Marketing",
+        88.0,
+        "2022-06-22",
+        true
+      ],
+      [
+        "EMP003",
+        "David Chen",
+        "Sales",
+        95.2,
+        "2021-11-30",
+        false
+      ],
+      [
+        "EMP004",
+        "Sarah Johnson",
+        "Human Resources",
+        79.8,
+        "2023-03-10",
+        true
+      ],
+      [
+        "EMP005",
+        "Robert Kim",
+        "Engineering",
+        91.0,
+        "2022-08-05",
+        true
+      ],
+      [
+        "EMP006",
+        "Lisa Williams",
+        "Finance",
+        86.5,
+        "2020-12-18",
+        true
+      ],
+      [
+        "EMP007",
+        "Michael Brown",
+        "Operations",
+        74.3,
+        "2023-05-14",
+        true
+      ],
+      [
+        "EMP008",
+        "Emma Wilson",
+        "Marketing",
+        89.7,
+        "2021-09-22",
+        false
+      ],
+      [
+        "EMP009",
+        "James Taylor",
+        "Engineering",
+        94.1,
+        "2022-02-28",
+        true
+      ],
+      [
+        "EMP010",
+        "Sophia Martinez",
+        "Sales",
+        81.6,
+        "2023-07-03",
+        true
+      ]
+    ]
+  }
+}
