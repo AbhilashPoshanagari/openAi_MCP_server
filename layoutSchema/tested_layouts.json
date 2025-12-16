@@ -466,11 +466,363 @@
                     }
                 }
             }
+        },
+        {
+  "type": "kanban",
+  "data": {
+    "board_title": "Electrical Field Service Tasks",
+    "board_id": "electrical-field-001",
+    "location": {
+      "base_location": "Gachibowli, Hyderabad, Telangana, India",
+      "service_radius_km": 25,
+      "regions_covered": [
+        "Madhapur",
+        "Kondapur",
+        "Raidurg",
+        "Hi-Tech City",
+        "Financial District"
+      ]
+    },
+    "columns": [
+      {
+        "id": "backlog",
+        "title": "Backlog",
+        "status": "todo",
+        "wip_limit": 10,
+        "color": "#FF6B6B",
+        "icon": "backlog",
+        "cards": [
+          {
+            "id": "task-EL-001",
+            "title": "Inspect transformer unit at Madhapur",
+            "description": "Perform thermal scanning and check load imbalance.",
+            "assignee": "Ramesh Kumar",
+            "due_date": "2024-03-10",
+            "tags": ["maintenance", "transformer", "inspection"],
+            "priority": "high",
+            "attachments": [
+              {
+                "name": "transformer_checklist.pdf",
+                "url": "/docs/transformer_checklist.pdf",
+                "type": "pdf"
+              }
+            ],
+            "comments": 1,
+            "metadata": {
+              "location": "Madhapur Substation - TS Electric Ltd.",
+              "equipment_id": "TR-4521",
+              "created_by": "Supervisor",
+              "service_type": "Periodic Maintenance"
+            }
+          },
+          {
+            "id": "task-EL-002",
+            "title": "Install new MCB units",
+            "description": "Install and test 4 new MCB units at commercial site.",
+            "assignee": "Anil Verma",
+            "due_date": "2024-03-12",
+            "tags": ["installation", "MCB", "safety"],
+            "priority": "medium",
+            "comments": 0,
+            "metadata": {
+              "location": "Hi-Tech City Phase 2",
+              "equipment_id": "MCB-7891",
+              "created_by": "Admin",
+              "service_type": "New Installation"
+            }
+          }
+        ]
+      },
+      {
+        "id": "in_progress",
+        "title": "In Progress",
+        "status": "in_progress",
+        "wip_limit": 4,
+        "color": "#4ECDC4",
+        "icon": "progress",
+        "cards": [
+          {
+            "id": "task-EL-003",
+            "title": "Repair streetlight circuit",
+            "description": "Diagnose faulty wiring and replace damaged connectors.",
+            "assignee": "Mahesh Patil",
+            "due_date": "2024-03-08",
+            "tags": ["repair", "wiring", "fieldwork"],
+            "priority": "high",
+            "comments": 3,
+            "metadata": {
+              "location": "Raidurg Road – Sector B",
+              "equipment_id": "SL-9982",
+              "service_type": "Emergency Repair"
+            }
+          }
+        ]
+      },
+      {
+        "id": "review",
+        "title": "Review",
+        "status": "review",
+        "color": "#FFD166",
+        "icon": "review",
+        "cards": [
+          {
+            "id": "task-EL-004",
+            "title": "Load testing for office facility",
+            "description": "Conduct load test and prepare stability report.",
+            "assignee": "Suresh Naik",
+            "due_date": "2024-03-06",
+            "tags": ["testing", "load-test", "commercial"],
+            "priority": "medium",
+            "comments": 2,
+            "metadata": {
+              "location": "Financial District Tower-5",
+              "equipment_id": "LT-2234",
+              "service_type": "Testing"
+            }
+          }
+        ]
+      },
+      {
+        "id": "done",
+        "title": "Completed",
+        "status": "done",
+        "color": "#06D6A0",
+        "icon": "done",
+        "cards": [
+          {
+            "id": "task-EL-005",
+            "title": "Replace faulty capacitor bank",
+            "description": "Removed old unit and installed new capacitor bank.",
+            "assignee": "Farhan Ahmed",
+            "due_date": "2024-02-28",
+            "tags": ["replacement", "capacitor-bank", "high-voltage"],
+            "priority": "high",
+            "comments": 4,
+            "metadata": {
+              "location": "Kondapur Industrial Zone",
+              "equipment_id": "CB-5517",
+              "service_type": "Critical Replacement"
+            }
+          }
+        ]
+      }
+    ],
+    "settings": {
+      "allow_card_creation": true,
+      "allow_card_deletion": true,
+      "allow_card_editing": true,
+      "show_wip_limits": true,
+      "auto_save": true,
+      "show_avatars": true
+    },
+    "actions": {
+      "add_card": {
+        "type": "form",
+        "title": "Add New Field Task",
+        "description": "Assign or create a new electrical field service task",
+        "form_schema": {
+          "title": "Task Details",
+          "fields": [
+            { "name": "title", "label": "Title", "type": "text", "required": true },
+            { "name": "description", "label": "Description", "type": "textarea" },
+            {
+              "name": "priority",
+              "label": "Priority",
+              "type": "select",
+              "options": ["low", "medium", "high", "critical"]
+            },
+            { "name": "assignee", "label": "Assignee", "type": "text" },
+            { "name": "location", "label": "Location", "type": "text" }
+          ]
+        },
+        "submit_action": {
+          "type": "tool",
+          "tool_name": "create_kanban_card"
         }
+      },
+      "edit_card": {
+        "type": "form",
+        "title": "Edit Task",
+        "tool_name": "update_kanban_card"
+      },
+      "move_card": {
+        "type": "tool",
+        "title": "Move Card",
+        "tool_name": "move_kanban_card"
+      }
+    },
+    "metadata": {
+      "project": "Field Service Management System",
+      "created_by": "system",
+      "created_at": "2024-02-01T10:00:00Z",
+      "updated_at": "2024-02-05T16:20:00Z",
+      "version": "1.0.0"
+    }
+  }
+},
+{
+  "type": "kanban",
+  "data": {
+    "board_title": "Project Development Tasks",
+    "board_id": "project-123",
+    "columns": [
+      {
+        "id": "backlog",
+        "title": "Backlog",
+        "status": "todo",
+        "wip_limit": 10,
+        "color": "#FF6B6B",
+        "icon": "backlog",
+        "cards": [
+          {
+            "id": "task-001",
+            "title": "Implement user authentication",
+            "description": "Add JWT-based authentication system",
+            "assignee": "John Doe",
+            "due_date": "2024-02-15",
+            "tags": ["backend", "security", "high-priority"],
+            "priority": "high",
+            "attachments": [
+              {
+                "name": "auth_spec.pdf",
+                "url": "/docs/auth_spec.pdf",
+                "type": "pdf"
+              }
+            ],
+            "comments": 3,
+            "metadata": {
+              "epic": "User Management",
+              "story_points": 5,
+              "created_by": "PM"
+            }
+          }
+        ]
+      },
+      {
+        "id": "in_progress",
+        "title": "In Progress",
+        "status": "in_progress",
+        "wip_limit": 4,
+        "color": "#4ECDC4",
+        "icon": "progress",
+        "cards": [
+          {
+            "id": "task-002",
+            "title": "Design dashboard UI",
+            "description": "Create responsive dashboard components",
+            "assignee": "Jane Smith",
+            "due_date": "2024-02-10",
+            "tags": ["frontend", "design"],
+            "priority": "medium",
+            "comments": 8
+          }
+        ]
+      },
+      {
+        "id": "review",
+        "title": "Review",
+        "status": "review",
+        "color": "#FFD166",
+        "icon": "review",
+        "cards": [
+          {
+            "id": "task-003",
+            "title": "API documentation",
+            "description": "Write OpenAPI documentation",
+            "assignee": "Alex Johnson",
+            "due_date": "2024-02-05",
+            "tags": ["documentation", "backend"],
+            "priority": "low",
+            "comments": 2
+          }
+        ]
+      },
+      {
+        "id": "done",
+        "title": "Done",
+        "status": "done",
+        "color": "#06D6A0",
+        "icon": "done",
+        "cards": [
+          {
+            "id": "task-004",
+            "title": "Setup CI/CD pipeline",
+            "description": "Configure GitHub Actions workflows",
+            "assignee": "Sam Wilson",
+            "due_date": "2024-01-30",
+            "tags": ["devops", "automation"],
+            "priority": "high",
+            "comments": 5
+          }
+        ]
+      }
+    ],
+    "settings": {
+      "allow_card_creation": true,
+      "allow_card_deletion": true,
+      "allow_card_editing": true,
+      "show_wip_limits": true,
+      "auto_save": true,
+      "show_avatars": true
+    },
+    "actions": {
+      "add_card": {
+        "type": "form",
+        "title": "Add New Task",
+        "description": "Create a new task card",
+        "form_schema": {
+          "title": "Task Details",
+          "fields": [
+            {
+              "name": "title",
+              "label": "Title",
+              "type": "text",
+              "required": true
+            },
+            {
+              "name": "description",
+              "label": "Description",
+              "type": "textarea"
+            },
+            {
+              "name": "priority",
+              "label": "Priority",
+              "type": "select",
+              "options": ["low", "medium", "high", "critical"]
+            },
+            {
+              "name": "assignee",
+              "label": "Assignee",
+              "type": "text"
+            }
+          ]
+        },
+        "submit_action": {
+          "type": "tool",
+          "tool_name": "create_kanban_card"
+        }
+      },
+      "edit_card": {
+        "type": "form",
+        "title": "Edit Task",
+        "tool_name": "update_kanban_card"
+      },
+      "move_card": {
+        "type": "tool",
+        "title": "Move Card",
+        "tool_name": "move_kanban_card"
+      }
+    },
+    "metadata": {
+      "project": "AI Chatbot v2",
+      "created_by": "system",
+      "created_at": "2024-01-15T10:30:00Z",
+      "updated_at": "2024-01-25T14:45:00Z",
+      "version": "1.2.0"
+    }
+  }
+}
+
     ]
 }
 
-
-{ features: "[{\"id\":\"shop_1\",\"name\":\"Brew & Bean\",\"type\":\"Coffee Shop\",\"coordinates\":[40.7484,-73.9857],\"properties\":{\"address\":\"123 Main St, New York, NY\",\"rating\":4.5,\"hours\":\"7am-9pm\",\"phone\":\"(555) 123-4567\",\"specialty\":\"Artisanal Pour-Over\"},\"style\":{\"color\":\"#8B4513\",\"fillColor\":\"#D2691E\",\"radius\":12,\"fillOpacity\":0.7}},{\"id\":\"shop_2\",\"name\":\"Urban Roast\",\"type\":\"Coffee Shop\",\"coordinates\":[40.7523,-73.9821],\"properties\":{\"address\":\"456 Broadway, New York, NY\",\"rating\":4.2,\"hours\":\"6am-10pm\",\"phone\":\"(555) 987-6543\",\"specialty\":\"Cold Brew\"},\"style\":{\"color\":\"#654321\",\"fillColor\":\"#8B4513\",\"radius\":10,\"fillOpacity\":0.7}}]"
-
-}

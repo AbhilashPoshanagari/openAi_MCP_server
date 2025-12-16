@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, field_validator, create_model
 from typing import Any, Dict, List, Optional, Union
 from enum import Enum
+import uuid
 
 
 # -------------------
@@ -26,7 +27,6 @@ class Option(BaseModel):
     displayValue: str
     value: str
     dependFields: Optional[Any] = None
-
 
 # -------------------
 # FORM WIDGET
@@ -55,6 +55,9 @@ class FormWidget(BaseModel):
     options: Optional[List[Option]] = None
     isReassign: Optional[bool] = None
 
+    class Config:
+        extra = "ignore"  # ADD THIS to ignore extra fields
+
     # -------------------
     # VALIDATORS (pydantic v2)
     # -------------------
@@ -75,23 +78,30 @@ class FormWidget(BaseModel):
         except (ValueError, TypeError):
             return v
 
-
 # -------------------
 # FORM INFO / DATA
 # -------------------
+
 class FormInfo(BaseModel):
-    id: str = Field(alias='_id')
-    name: str
-    createdBy: str
-    description: str
+    id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()), alias='_id')
+    name: Optional[str] = "Unknown Form"
+    createdBy: Optional[str] = "Unknown User"
+    description: Optional[str] = ""
     dependentFields: List[Any] = Field(default_factory=list)
     displayField: List[Any] = Field(default_factory=list)
-    version: str
+    version: Optional[str] = "1.0"
 
     class Config:
-        extra = "ignore" 
+        extra = "ignore"
         populate_by_name = True
 
+class FormConfig(BaseModel):
+    """Complete form configuration - LLM must structure data like this"""
+    formWidgets: List[FormWidget]
+    formInfo: FormInfo
+    isCurrentVersion: bool = True
+    referenceList: List[Any] = []
+    recordInformation: List[Any] = []
 
 class FormData(BaseModel):
     formWidgets: List[FormWidget]
@@ -104,7 +114,6 @@ class FormData(BaseModel):
 class FormResponse(BaseModel):
     data: FormData
     status: int
-
 
 # -------------------
 # DYNAMIC FORM GENERATOR

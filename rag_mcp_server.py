@@ -13,6 +13,7 @@ from layoutSchema.form_shema import DynamicFormGenerator, FormResponse
 from layoutSchema.generic_layout import TableFormat, TableLayout
 from starlette.routing import Mount
 from mcp.server.fastmcp import FastMCP, Context
+from layouts.map_layout import MapFeature, MapFeatures, MapLayout
 from resources.resources import Resources
 from prompts.prompt import Prompts
 from tools.tools import Tools
@@ -62,10 +63,53 @@ def setup_ngrok(port: int):
         return None
 
 server_instructions = """
-This MCP server provides search and document retrieval capabilities 
-for deep research. Use the search tool to find relevant documents 
-based on keywords, then use the fetch tool to retrieve complete 
-document content with citations.
+# SYSTEM INSTRUCTIONS FOR LAYOUT MCP SERVER
+You are a Layout Visualization Assistant that converts user requests into interactive visual components using specific layout tools.
+
+## AVAILABLE LAYOUT TYPES
+1. **Table Layout**: For structured data presentation (rows/columns)
+2. **Map Layout**: For geographical/coordinate-based visualization  
+3. **Form Layout**: For dynamic form generation and data collection
+4. **Button Layout**: For actions, navigation, and external links
+
+## CORE PRINCIPLES
+- ALWAYS output ONLY valid JSON function calls for the appropriate tool
+- NEVER include explanations, markdown, or natural language in responses
+- Each layout type has specific trigger conditions
+- Format ALL parameters according to the expected data structures
+
+## TOOL SELECTION GUIDELINES
+
+### When to use TABLE_LAYOUT_TOOL:
+- User mentions "table", "spreadsheet", "grid", "list of records"
+- Data contains structured fields, rows, columns
+- User asks for "show in table", "tabular format", "data table"
+- Response includes arrays of objects with similar keys
+
+### When to use MAP_LAYOUT_TOOL:
+- User mentions locations, addresses, coordinates, places
+- User says "show on map", "visualize locations", "where is", "near me"
+- Data contains latitude/longitude pairs, addresses
+- User asks for geographical representation
+- each GeoJSON Feature must have geometry
+
+### When to use FORM_LAYOUT_TOOL:
+- User wants to "create a form", "fill out information", "collect data"
+- User mentions specific form types (inspection, survey, report)
+- Need dynamic form generation with validation
+- Form submission required
+
+### When to use BUTTON_LAYOUT_TOOL:
+- User wants to "open", "go to", "navigate to", "click here"
+- User asks for external links, actions, or deep links
+- Need interactive buttons for navigation
+- Mobile app deeplinking required
+
+## OUTPUT FORMAT RULES
+- Output must be ONLY a JSON function call object
+- No code fences, no markdown, no explanations
+- Match exact parameter names and types from tool definitions
+- Validate data structures before calling
 """
 
 # Configure logging
@@ -88,90 +132,14 @@ class UserInfo(BaseModel):
     username: str = Field(description="FieldOn App mobile username")
     password: int = Field(description="FieldOn App mobile password")
 
-@mcp.tool(title="Database queries", description="""You are a PostgreSQL query assistant. 
-        Your job is to convert natural language user questions into correct, secure, and optimized SQL queries using PostgreSQL syntax. 
-        You will then use the appropriate tool call to execute the query or perform the requested action.
-
-        1. When listing tables, include only **user-defined base tables**.
-        2. Exclude all internal system schemas like 'pg_catalog' and 'information_schema'.
-        3. Do not assume all tables are in the 'public' schema.
-        4. Use: 
-        SELECT table_schema, table_name 
-        FROM information_schema.tables 
-        WHERE table_type = 'BASE TABLE' 
-            AND table_schema NOT IN ('pg_catalog', 'information_schema');
-        when asked for a list of all user-defined tables.
-        5. Always use `table_type = 'BASE TABLE'` to avoid views or temporary tables.
-        6. When the user asks for time-based filters (e.g., "today", "yesterday", "last week"), Assume the relevant column is of type **timestamp**.
-        7. Assume the date or time related queries use `timestamp` as a column name.
-        8. Use CURRENT_DATE or NOW() appropriately:
-            For "today": filter using timestamp::date = CURRENT_DATE
-            For "yesterday": timestamp::date = CURRENT_DATE - INTERVAL '1 day'
-            For "last 7 days": timestamp >= NOW() - INTERVAL '7 days'
-    """, annotations={
-         "query": {"description": "The natural language question to be converted into a SQL query."}
-         })
-async def databaseAccess(query: str, ctx: Context):
-  
-    return await tools.databaseAccess(query, ctx)
-
-@mcp.tool(title="Streaming notification", description="long running task",
-          annotations={
-              "interval": {"description": "Interval in seconds between notifications"},
-              "count": {"description": "Total number of notifications to send"},
-              "caller": {"description": "Identifier for the caller or task"}
-          })
-async def notificationsWithResumability(interval: int, count: int, caller: str,  ctx: Context) -> list[types.ContentBlock]:
-        # Send the specified number of notifications with the given interval
-        for i in range(count):
-            notification_msg = (
-                f"[{i + 1}/{count}] Event from '{caller}' - "
-                f"Use Last-Event-ID to resume if disconnected"
-            )
-            await ctx.session.send_log_message(
-                level="info",
-                data=notification_msg,
-                logger="notification_stream",
-                related_request_id=ctx.request_id,
-            )
-            logger.debug(f"Sent notification {i + 1}/{count} for caller: {caller}")
-            print(f'Sent notification {i + 1}/{count} for caller: {caller}')
-            if i < count - 1:  # Don't wait after the last notification
-                await anyio.sleep(interval)
-
-        # This will send a resource notificaiton though standalone SSE
-        return [
-            types.TextContent(
-                type="text",
-                text=(
-                    f"Sent {count} notifications with {interval}s interval"
-                    f" for caller: {caller}"
-                ),
-            )
-        ]
-
-@mcp.tool(title="Book a table", description="Book a table at a restaurant by providing date, time, and party size.",
-          annotations={
-              "date": {"description": "Date for the reservation in DD-MM-YYYY format"},
-              "time": {"description": "Time for the reservation in HH:MM format"},
-              "party_size": {"description": "Number of people for the reservation"}
-          })
-async def book_table(date: str, time: str, party_size: int, ctx: Context) -> str:
-        return await tools.book_table(date, time, party_size, ctx)
-
 @mcp.tool(title="Table view", description=f"""You are an expert data analyst specializing in infrastructure and utility network data analysis.
 
         Your task is to:
         Your ONLY valid output format is a JSON function call for the tool `table_layout_tool`.  
-        Do NOT return python code.  
-        Do NOT return markdown.  
-        Do NOT explain anything.  
-        Do NOT wrap the output in code fences.  
-        Do NOT speak in natural language.  
         Return ONLY a function_call object.
+          
         ### Table Interpretation Requirements
         When the data contains table-like structures (e.g., rows, objects, structured fields):
-
         1. **Identify the table structure** detect if the data resembles a table or list of records.  
         2. **Identify the table name** and generate a meaningful, human-friendly title.  
         3. **Identify the column names** based on the keys or attributes found.  
@@ -212,112 +180,55 @@ def table_layout_tool(table_name: str, column_names: list[str], data: list[list[
     3. Data contains latitude/longitude pairs, addresses, or geospatial references
     4. User asks for "show on map", "visualize locations", "where is", "near me"
 
-    Your ONLY valid output format is a JSON function call for the tool `map_layout_tool`.
-    Do NOT return python code. Do NOT return markdown. Do NOT explain anything.
-    Do NOT wrap the output in code fences. Do NOT speak in natural language.
-    Return ONLY a function_call object.
-
     ### Map Creation Requirements
     1. **Identify geographical elements**: Extract any addresses, coordinates, place names
     2. **Determine map focus**: Calculate center point from provided locations
     3. **Set appropriate zoom**: Choose zoom level based on location density
     4. **Style features appropriately**: Use meaningful colors for different feature types
+
+    Example feature sturcture: [{
+                "type": "Feature",
+                "id": "rest_1",
+                "properties": {
+                    "name": "Third Wave Coffee",
+                    "type": "Cafe",
+                    "address": "Knowledge City, Raidurg"
+                },
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [78.37385, 17.43352]
+                }
+            }]
     
     Call the map_layout_tool with extracted features, center, and zoom.""",
     annotations={
         "features": {
-            "type": "string",
+            "type": "List",
             "description": "List of map features with id, name, type, coordinates, properties, and optional style as a string format"
-        },
-        "center": {
-            "type": "list[float]",
-            "description": "Map center coordinates [longitude, latitude]"
-        },
-        "zoom": {
-            "type": "int",
-            "description": "Initial zoom level (1-18, default 12)"
         },
         "map_title": {
             "type": "string",
             "description": "Optional title for the map",
+        },
+        "wms_layers": {
+            "type": "List[Dict]",
+            "description": "wms or osm layer setup"
         }
     }
 )
 def map_layout_tool(
-    features: str,
-    center: List[float],
-    zoom: int = 12,
-    map_title: str = "Map",
-    height: str = "250px",
-    wms_layers: List[Dict] = None
-) -> Dict[str, Any]:
-    """
-    Create a map layout with features and visualization settings.
-    
-    Args:
-        features: String containing features (could be JSON, Python string with quotes, etc.)
-        center: Map center coordinates [lat, lng]
-        zoom: Initial zoom level
-        map_title: Map title
-        height: Map height in pixels
-        wms_layers: Optional WMS layers configuration
-    """
-    print(f"Input features first 200 chars: {repr(features[:200])}")
-    
-    # Clean the features string
-    features_clean = features.strip()
-    
-    # Handle Python triple quotes and other quote variations
-    # Remove leading/trailing triple quotes
-    if features_clean.startswith("'''"):
-        features_clean = features_clean[3:]
-    if features_clean.endswith("'''"):
-        features_clean = features_clean[:-3]
-    
-    # Also handle single quotes
-    features_clean = features_clean.strip()
-    
-    # Remove any remaining outer quotes
-    while len(features_clean) >= 2:
-        if (features_clean[0] == '"' and features_clean[-1] == '"') or \
-           (features_clean[0] == "'" and features_clean[-1] == "'"):
-            features_clean = features_clean[1:-1].strip()
-        else:
-            break
-    
-    print(f"Cleaned features first 100 chars: {repr(features_clean[:100])}")
-    
-    # Now parse as JSON
-    try:
-        parsed_features = json.loads(features_clean)
-        print(f"Successfully parsed as JSON. Type: {type(parsed_features)}")
-    except json.JSONDecodeError as e:
-        print(f"JSON decode error after cleaning: {e}")
-        print("Trying alternative parsing...")
-        
-        # Try Python's ast.literal_eval as fallback
-        try:
-            import ast
-            parsed_features = ast.literal_eval(features_clean)
-            print(f"Successfully parsed with ast.literal_eval. Type: {type(parsed_features)}")
-        except Exception as ast_err:
-            print(f"ast.literal_eval also failed: {ast_err}")
-            raise ValueError(f"Cannot parse features string. It should be valid JSON or Python list syntax.")
-    
-    # Ensure it's a list
-    if not isinstance(parsed_features, list):
-        raise ValueError(f"Parsed features should be a list, got {type(parsed_features)}")
-    
-    print(f"Number of features parsed: {len(parsed_features)}")
-    
+    features: List[MapFeature],
+    map_title: str,
+    wms_layers: List[Dict] = None ) -> Dict[str, Any]:
+
+    # Features are already MapFeature objects - convert to dicts
+    feature_dicts = [feature.to_dict() for feature in features]
+
     # Create map data structure
     map_data = {
-        "features": parsed_features,
-        "center": [float(center[0]), float(center[1])],
-        "zoom": zoom,
-        "height": height
+        "features": feature_dicts,
     }
-    
+
     if map_title:
         map_data["title"] = map_title
     
@@ -329,7 +240,7 @@ def map_layout_tool(
             "layers": "osm",
             "attribution": "© OpenStreetMap contributors"
         }]
-    
+    print(f"Map data : {map_data}")
     return {
         "layouts": [{
             "type": "map",
@@ -365,7 +276,7 @@ def generate_dynamic_form(
     try:
         # Validate input data
         # form_response = FormResponse(**form_data)
-        form_schema_url = f"https://dev.mobile-springboard.digital.trccompanies.com/api/v1/forms/formSkeleton/{form_id}/null/true/null/null/null/null/64898d0cc2fd807b50602703/openform"
+        form_schema_url = f"https://dev.mobile-springboard.digital.trccompanies.com/api/v1/forms/formSkeleton/{form_id}/null/True/null/null/null/null/64898d0cc2fd807b50602703/openform"
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"{fieldOn_access_token}",
@@ -567,50 +478,181 @@ def button_layout_tool(
     
     return button_layout
 
-@mcp.tool(
-    title="Multi-Layout Display",
-    description="""You are a layout composition expert for creating rich, multi-component displays.
 
-    Use this tool when:
-    1. User needs multiple layout types in one response
-    2. Response includes both data table and actions
-    3. Combining maps with location data and action buttons
-    4. Showing data alongside forms for data entry
-    5. Creating dashboard-like interfaces with multiple components
 
-    Your ONLY valid output format is a JSON function call for the tool `multi_layout_tool`.
-    Do NOT return python code. Do NOT return markdown. Do NOT explain anything.
-    Do NOT wrap the output in code fences. Do NOT speak in natural language.
-    Return ONLY a function_call object.
-
-    ### Layout Composition Requirements
-    1. **Identify component needs**: Determine which layout types are needed
-    2. **Create logical flow**: Order layouts meaningfully (e.g., table → button, map → button)
-    3. **Maintain context**: Ensure all layouts relate to the same topic/context
-    4. **Optimize for user experience**: Group related information together
-    
-    Call the multi_layout_tool with multiple layout configurations.""",
-    annotations={
-        "layouts": {
-            "type": "list[dict]",
-            "description": "List of layout objects (table, button, map, or form layouts)"
+# Alternative: Get all features
+@mcp.tool()
+def kanban_testing(work_title: str):
+    """Get all map features in layout format"""
+    kanban_board = {
+  "type": "kanban",
+  "data": {
+    "board_title": "Project Development Tasks",
+    "board_id": "project-123",
+    "columns": [
+      {
+        "id": "backlog",
+        "title": "Backlog",
+        "status": "todo",
+        "wip_limit": 10,
+        "color": "#FF6B6B",
+        "icon": "backlog",
+        "cards": [
+          {
+            "id": "task-001",
+            "title": "Implement user authentication",
+            "description": "Add JWT-based authentication system",
+            "assignee": "John Doe",
+            "due_date": "2024-02-15",
+            "tags": ["backend", "security", "high-priority"],
+            "priority": "high",
+            "attachments": [
+              {
+                "name": "auth_spec.pdf",
+                "url": "/docs/auth_spec.pdf",
+                "type": "pdf"
+              }
+            ],
+            "comments": 3,
+            "metadata": {
+              "epic": "User Management",
+              "story_points": 5,
+              "created_by": "PM"
+            }
+          }
+        ]
+      },
+      {
+        "id": "in_progress",
+        "title": "In Progress",
+        "status": "in_progress",
+        "wip_limit": 4,
+        "color": "#4ECDC4",
+        "icon": "progress",
+        "cards": [
+          {
+            "id": "task-002",
+            "title": "Design dashboard UI",
+            "description": "Create responsive dashboard components",
+            "assignee": "Jane Smith",
+            "due_date": "2024-02-10",
+            "tags": ["frontend", "design"],
+            "priority": "medium",
+            "comments": 8
+          }
+        ]
+      },
+      {
+        "id": "review",
+        "title": "Review",
+        "status": "review",
+        "color": "#FFD166",
+        "icon": "review",
+        "cards": [
+          {
+            "id": "task-003",
+            "title": "API documentation",
+            "description": "Write OpenAPI documentation",
+            "assignee": "Alex Johnson",
+            "due_date": "2024-02-05",
+            "tags": ["documentation", "backend"],
+            "priority": "low",
+            "comments": 2
+          }
+        ]
+      },
+      {
+        "id": "done",
+        "title": "Done",
+        "status": "done",
+        "color": "#06D6A0",
+        "icon": "done",
+        "cards": [
+          {
+            "id": "task-004",
+            "title": "Setup CI/CD pipeline",
+            "description": "Configure GitHub Actions workflows",
+            "assignee": "Sam Wilson",
+            "due_date": "2024-01-30",
+            "tags": ["devops", "automation"],
+            "priority": "high",
+            "comments": 5
+          }
+        ]
+      }
+    ],
+    "settings": {
+      "allow_card_creation": True,
+      "allow_card_deletion": True,
+      "allow_card_editing": True,
+      "show_wip_limits": True,
+      "auto_save": True,
+      "show_avatars": True
+    },
+    "actions": {
+      "add_card": {
+        "type": "form",
+        "title": "Add New Task",
+        "description": "Create a new task card",
+        "form_schema": {
+          "title": "Task Details",
+          "fields": [
+            {
+              "name": "title",
+              "label": "Title",
+              "type": "text",
+              "required": True
+            },
+            {
+              "name": "description",
+              "label": "Description",
+              "type": "textarea"
+            },
+            {
+              "name": "priority",
+              "label": "Priority",
+              "type": "select",
+              "options": ["low", "medium", "high", "critical"]
+            },
+            {
+              "name": "assignee",
+              "label": "Assignee",
+              "type": "text"
+            }
+          ]
+        },
+        "submit_action": {
+          "type": "tool",
+          "tool_name": "create_kanban_card"
         }
+      },
+      "edit_card": {
+        "type": "form",
+        "title": "Edit Task",
+        "tool_name": "update_kanban_card"
+      },
+      "move_card": {
+        "type": "tool",
+        "title": "Move Card",
+        "tool_name": "move_kanban_card"
+      }
+    },
+    "metadata": {
+      "project": "AI Chatbot v2",
+      "created_by": "system",
+      "created_at": "2024-01-15T10:30:00Z",
+      "updated_at": "2024-01-25T14:45:00Z",
+      "version": "1.2.0"
     }
-)
-def multi_layout_tool(layouts: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """
-    Combine multiple layouts into a single response.
+  }
+}
     
-    Example usage:
-    User: "Show me coffee shops and give me a link to book a table"
-    LLM: Calls multi_layout_tool with:
-      layouts: [
-        table_layout_tool(...),  # Coffee shops table
-        button_layout_tool(...)  # Book table button
-      ]
-    """
-    
-    return {"layouts": layouts}
+    layouts = { 
+        "layouts": [
+            kanban_board
+        ]
+    }
+    return layouts
 
 @mcp.tool(title="Form submission")
 def add_record(form_data: dict[str, Any],form_name: str, form_id: str) -> dict[str, Any]:
