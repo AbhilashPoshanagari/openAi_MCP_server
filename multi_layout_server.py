@@ -10,13 +10,15 @@ import anyio
 from fastapi import Request, Response
 from fastapi.responses import JSONResponse
 from api import forms_utils
+from auth.starlette_security import JWTAuthBackend
 from layoutSchema.api_calls import RestApiHelper
 from layoutSchema.form_shema import DynamicFormGenerator, FormConfig, FormData, FormInfo, FormResponse, FormWidget
 from layoutSchema.generic_layout import TableFormat, TableLayout
-from starlette.routing import Mount
+from starlette.routing import Mount, Route, WebSocketRoute
 from mcp.server.fastmcp import FastMCP, Context
 from layouts.form_layout import generate_form_schema
 from layouts.map_layout import MapFeature, MapLayout
+from mediaServices.video_streaming import get_webrtc_config
 from postgres.postgres_conn import PostgreSQL
 from resources.resources import Resources
 from prompts.prompt import Prompts
@@ -25,11 +27,15 @@ from starlette.applications import Starlette
 from pydantic import BaseModel, Field
 import uvicorn
 from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware import Middleware
+from starlette.middleware.authentication import AuthenticationMiddleware
 from mcp.types import ResourceTemplateReference, Completion
 import config
 import click
 from api.forms import form_routes
-import time
+from user_auth import get_me, login, logout, refresh_token, update_user_status, register, user_details, websocket_endpoint
+from auth.auth_service import auth_service
+from api.object_detection import media_routes
 
 def is_colab():
     """Detect if code runs inside Google Colab."""
@@ -775,23 +781,55 @@ async def lifespan(app: Starlette):
         await stack.enter_async_context(mcp.session_manager.run())
         yield
 
+# Custom authentication error handler
+def on_auth_error(request, exc):
+    return JSONResponse({"error": str(exc)}, status_code=401)
+
+# Create middleware stack
+middleware = [
+    Middleware(CORSMiddleware,
+        allow_origins=["*"],  # Or specify: ["http://localhost:4200"]
+        allow_methods=["GET", "POST"],
+        allow_headers=["*"],
+        expose_headers=["mcp-session-id"],
+    ),
+    Middleware(AuthenticationMiddleware, 
+               backend=JWTAuthBackend(), 
+               on_error=on_auth_error)
+]
+
+routes = [
+    Mount("/multiLayout", mcp.streamable_http_app()),
+    Mount("/api/forms", routes=form_routes),
+    # Route("/api/health", health_check),
+    Route("/api/config", get_webrtc_config),
+    Route("/api/auth/register", register, methods=["POST"]),
+    Route("/api/auth/login", login, methods=["POST"]),
+    Route("/api/auth/refresh", refresh_token, methods=["POST"]),
+    Route("/api/auth/logout", logout, methods=["POST"]),
+    Route("/api/auth/me", get_me, methods=["GET"]),
+    Route("/api/auth/{username}", user_details, methods=["GET"]),
+    # Route("/api/users/online", get_online_users, methods=["GET"]),
+    Route("/api/users/status", update_user_status, methods=["POST"]),
+    Mount("/api/media", routes=media_routes),
+    WebSocketRoute("/ws/{room_id}", websocket_endpoint)
+]
+
 # Create the Starlette app and mount the MCP servers
 app = Starlette(
-    routes=[
-        Mount("/multiLayout", mcp.streamable_http_app()),
-        Mount("/api/forms", routes=form_routes)
-    ],
-    lifespan=lifespan
+    routes=routes,
+    lifespan=lifespan,
+    middleware=middleware
 )
 
 # Enable CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Or specify: ["http://localhost:4200"]
-    allow_methods=["GET", "POST"],
-    allow_headers=["*"],
-    expose_headers=["mcp-session-id"]
-)
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],  # Or specify: ["http://localhost:4200"]
+#     allow_methods=["GET", "POST"],
+#     allow_headers=["*"],
+#     expose_headers=["mcp-session-id"]
+# )
 
 
 @click.command()

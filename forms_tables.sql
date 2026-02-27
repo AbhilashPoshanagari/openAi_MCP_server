@@ -28,3 +28,14 @@ CREATE TABLE IF NOT EXISTS form_submissions (
 -- Create index for better performance
 CREATE INDEX IF NOT EXISTS idx_form_submissions_form_id ON form_submissions(form_id);
 CREATE INDEX IF NOT EXISTS idx_form_submissions_submitted_at ON form_submissions(submitted_at);
+
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_login TIMESTAMP,
+    is_online BOOLEAN DEFAULT false,
+    call_status VARCHAR(20) DEFAULT 'available'
+);
