@@ -11,6 +11,14 @@ class ConnectionManager:
         self.active_connections: Dict[str, Dict[int, Dict]] = defaultdict(dict)
         # user_id -> room_ids
         self.user_rooms: Dict[int, List[str]] = defaultdict(list)
+        # Add inside ConnectionManager.__init__()
+        self.user_connections: Dict[int, Dict] = {}
+
+    async def safe_send(self, websocket: WebSocket, message: dict):
+        try:
+            await websocket.send_json(message)
+        except Exception:
+            pass
     
     async def connect(self, websocket: WebSocket, room_id: str, user_id: int, user_info: dict):
         """Accept WebSocket connection and store it"""
@@ -18,6 +26,14 @@ class ConnectionManager:
         
         # Store connection
         self.active_connections[room_id][user_id] = {
+            "websocket": websocket,
+            "user_info": user_info,
+            "connected_at": datetime.now()
+        }
+
+        
+        # Store global user connection
+        self.user_connections[user_id] = {
             "websocket": websocket,
             "user_info": user_info,
             "connected_at": datetime.now()
@@ -51,6 +67,7 @@ class ConnectionManager:
                 "timestamp": datetime.now().isoformat()
             }
         )
+
     
     def disconnect(self, room_id: str, user_id: int):
         """Remove connection from room"""
@@ -66,12 +83,15 @@ class ConnectionManager:
                 self.user_rooms[user_id].remove(room_id)
                 if not self.user_rooms[user_id]:
                     del self.user_rooms[user_id]
+
+            if user_id in self.user_connections:
+                del self.user_connections[user_id]
     
     async def disconnect_user(self, user_id: int):
         """Disconnect user from all rooms"""
         if user_id in self.user_rooms:
             for room_id in self.user_rooms[user_id].copy():
-                await self.disconnect(room_id, user_id)
+                self.disconnect(room_id, user_id)
     
     async def send_to_user(self, room_id: str, user_id: int, message: dict):
         """Send message to specific user in a room"""
@@ -82,6 +102,21 @@ class ConnectionManager:
             except Exception as e:
                 print(f"Error sending to user {user_id} in room {room_id}: {e}")
                 self.disconnect(room_id, user_id)
+        elif user_id in self.user_connections:
+            # If user is not in the room but has a global connection, send message globally
+            await self.send_to_user_global(user_id, message)
+
+    async def send_to_user_global(self, user_id: int, message: dict):
+        """Send message to user regardless of room"""
+        if user_id not in self.user_connections:
+            return
+
+        try:
+            websocket = self.user_connections[user_id]["websocket"]
+            await websocket.send_json(message)
+
+        except Exception:
+            self.user_connections.pop(user_id, None)
     
     async def broadcast_to_room(self, message: dict, room_id: str, exclude_user_id: Optional[int] = None):
         """Broadcast message to all users in a room"""
@@ -102,11 +137,23 @@ class ConnectionManager:
             for user_id in disconnected_users:
                 self.disconnect(room_id, user_id)
     
-    async def send_call_request(self, room_id: str, from_user_id: int, to_user_id: int, from_username: str):
+    async def send_call_request(self, room_id: str, from_user_id: int, target_username: str, from_username: str):
         """Send call request to specific user"""
+        # Find the user ID by username
+        target_user_id = None
+        for user_id, user_connection in self.user_connections.items():
+            connected_username = user_connection.get("user_info", {}).get("username")
+            if connected_username == target_username:
+                target_user_id = user_id
+                break
+
+        if not target_user_id:
+            print(f"User {target_username} not found")
+            return
+
         await self.send_to_user(
             room_id,
-            to_user_id,
+            target_user_id,
             {
                 "type": "call-request",
                 "from_user_id": from_user_id,
@@ -116,14 +163,14 @@ class ConnectionManager:
             }
         )
     
-    async def send_call_response(self, room_id: str, from_user_id: int, to_user_id: int, accepted: bool):
+    async def send_call_response(self, room_id: str, from_user_id: str, to_user_id: int, from_username: str, accepted: bool):
         """Send call response (accept/reject)"""
-        await self.send_to_user(
-            room_id,
+        await self.send_to_user_global(
             to_user_id,
             {
                 "type": "call-response",
                 "from_user_id": from_user_id,
+                "from_username": from_username,
                 "accepted": accepted,
                 "timestamp": datetime.now().isoformat()
             }

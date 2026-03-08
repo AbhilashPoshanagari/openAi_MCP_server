@@ -36,6 +36,7 @@ from api.forms import form_routes
 from user_auth import get_me, login, logout, refresh_token, update_user_status, register, user_details, websocket_endpoint
 from auth.auth_service import auth_service
 from api.object_detection import media_routes
+from api.voice_to_text_conversion import voice_media_routes
 
 def is_colab():
     """Detect if code runs inside Google Colab."""
@@ -812,6 +813,7 @@ routes = [
     # Route("/api/users/online", get_online_users, methods=["GET"]),
     Route("/api/users/status", update_user_status, methods=["POST"]),
     Mount("/api/media", routes=media_routes),
+    Mount("/api/voice", routes=voice_media_routes),
     WebSocketRoute("/ws/{room_id}", websocket_endpoint)
 ]
 

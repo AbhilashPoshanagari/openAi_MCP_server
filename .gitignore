@@ -1,6 +1,8 @@
 .git/credentials
 .git/.my-credentials
 .env
+.ibm-credentials.env
+
 .vscode
 .vscode/*
 
@@ -15,3 +17,5 @@ __pycache__/
 /papers/*
 /certs
 /certs/*
+/debug_audio/*
+/yolov5*

@@ -217,20 +217,34 @@ async def websocket_endpoint(websocket: Request):
             
             if message_type == "offer":
                 # Broadcast offer to other users in room
-                await connection_manager.broadcast_to_room({
-                    "type": "offer",
-                    "offer": data["offer"],
-                    "sender": user_id
-                }, room_id, exclude_user_id=user_id)
+                sender = data.get("sender")
+                sender_name = data.get("sender_username")
+                target = data.get("target")
+                await connection_manager.forward_webrtc_signal(
+                    room_id,
+                    sender,
+                    target,
+                    message_type,
+                    {
+                        "type": "offer",
+                        "offer": data["offer"],
+                        "sender": sender,
+                        "sender_username": sender_name,
+                    }
+                )
             
             elif message_type == "answer":
                 # Send answer to specific user
                 target_user = data.get("target")
+                sender_username = data.get("sender_username")
+                sender = data.get("sender")
+                print(f"Received answer from {username} for target {target_user}")
                 if target_user:
                     await connection_manager.send_to_user(room_id, target_user, {
                         "type": "answer",
                         "answer": data["answer"],
-                        "sender": user_id
+                        "sender": sender,
+                        "sender_username": sender_username
                     })
 
             elif message_type == "call-request":
@@ -241,17 +255,28 @@ async def websocket_endpoint(websocket: Request):
                 if target_user:
                     await connection_manager.send_call_request(room_id, 
                                                                from_user_id=sender_id, 
-                                                               to_user_id=target_user,
+                                                               target_username=target_user,
                                                                from_username=sender_username)
+                    # await connection_manager.send_to_user_global(
+                    #     target_user,
+                    #     {
+                    #         "type": "call-request",
+                    #         "from_user_id": sender_id,
+                    #         "from_username": sender_username,
+                    #         "room_id": room_id
+                    #     }
+                    # )
             
             elif message_type == "call-response":
                 accepted = data.get("accepted")
                 target = data.get("target")
                 from_user_id = data.get("from_user_id")
+                from_username = data.get("from_username")
 
                 if accepted and target:
                     await connection_manager.send_call_response(room_id, from_user_id, 
                                                                 to_user_id=target,
+                                                                from_username=from_username,
                                                                 accepted=accepted)
 
             elif message_type == "ice-candidate":
